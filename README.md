@@ -56,7 +56,7 @@ pool.set_min_task_count(count) //设置单次最小任务量
 ```
 同时均有 get 版本
 
-提交非`noexcept`任务时，自动包装`try``catch`并将异常置入返回的`future`
+提交非`noexcept`任务时，自动包装`try` `catch`并将异常置入返回的`future`
 
 ## 注意事项
 #### 雷区
