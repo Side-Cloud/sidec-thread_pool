@@ -50,7 +50,7 @@ int main() {
 
 线程每次批量获取任务
 ```c++
-pool.set_equilibrium_value(value) //设置均衡值，越高任务时间分配越均匀
+pool.set_equilibrium_value(value) //设置均衡值，越高任务时间分配越均匀（每次执行 总任务量/总线程量/均衡值 个任务）
 pool.set_max_task_count(count) //设置单次最大任务量
 pool.set_min_task_count(count) //设置单次最小任务量
 ```
