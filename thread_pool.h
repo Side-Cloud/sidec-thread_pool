@@ -9,6 +9,7 @@
 #include <list>
 #include <unordered_map>
 #include <deque>
+#include <set>
 
 namespace sidec {
 	struct thread_task final : std::function<void()> {
@@ -22,6 +23,7 @@ namespace sidec {
 		using std::function<void()>::operator();
 	};
 
+	template<bool Ordering = false>
 	class thread_pool {
 		template<class Mutex> using read_lock = std::shared_lock<Mutex>;
 		template<class Mutex> using write_lock = std::unique_lock<Mutex>;
@@ -38,7 +40,7 @@ namespace sidec {
 		std::list<std::latch> thrd_latch_cntr;
 		std::list<std::latch> task_latch_cntr;
 		std::counting_semaphore<std::numeric_limits<thrd_size_type>::max()> thrd_dec{ 0 };
-		std::atomic_size_t balanced_task_count{ 1000000 };
+		std::atomic_size_t equilibrium_value{ 1000000 };
 		std::atomic_size_t max_task_count{ std::numeric_limits<size_t>::max() };
 		std::atomic_size_t min_task_count{ 1 };
 		std::atomic_bool is_waiting_task{ false };
@@ -52,7 +54,7 @@ namespace sidec {
 			return !is_paused.load() && !task_cntr.empty();
 		}
 		size_t expect_task_count_internal() noexcept {
-			const size_t balanced_count = task_cntr.size() / thrd_size() / balanced_task_count.load();
+			const size_t balanced_count = task_cntr.size() / thrd_size() / equilibrium_value.load();
 			const size_t max_count = std::min(max_task_count.load(), task_cntr.size());
 			return std::min(std::max(balanced_count, min_task_count.load()), max_count);
 		}
@@ -181,7 +183,7 @@ namespace sidec {
 
 		template<class Callable, class... ValTys>
 			requires(std::invocable<Callable, std::decay_t<ValTys>...>)
-		auto emplace_task_unwrapped(Callable&& callable, ValTys&&... vals) noexcept {
+		auto emplace_task(Callable&& callable, ValTys&&... vals) noexcept {
 			using Res = std::invoke_result_t<Callable, std::decay_t<ValTys>...>;
 			const auto ppromise = std::make_shared<std::promise<Res>>();
 			std::future<Res> future = ppromise->get_future();
@@ -214,7 +216,7 @@ namespace sidec {
 		}
 		template<class Callable, class... ValTys>
 			requires(std::is_nothrow_invocable_v<Callable, std::decay_t<ValTys>...>)
-		void emplace_task_unwrapped_noreturn(Callable&& callable, ValTys&&... vals) noexcept {
+		void emplace_task_noreturn(Callable&& callable, ValTys&&... vals) noexcept {
 			task_emplace_internal([callable, vals...]() noexcept {
 				callable(vals...);
 				});
@@ -233,8 +235,8 @@ namespace sidec {
 			decrease_thrd_internal(size);
 		}
 
-		size_t get_balanced_task_count() const noexcept {
-			return balanced_task_count.load();
+		size_t get_equilibrium_value() const noexcept {
+			return equilibrium_value.load();
 		}
 		size_t get_max_task_count() const noexcept {
 			return max_task_count.load();
@@ -242,8 +244,8 @@ namespace sidec {
 		size_t get_min_task_count() const noexcept {
 			return min_task_count.load();
 		}
-		void set_balanced_task_count(size_t count) noexcept {
-			return balanced_task_count.store(std::max(count, static_cast<size_t>(1)));
+		void set_equilibrium_value(size_t value) noexcept {
+			return equilibrium_value.store(std::max(value, static_cast<size_t>(1)));
 		}
 		void set_max_task_count(size_t count) noexcept {
 			return max_task_count.store(std::max(count, static_cast<size_t>(1)));
