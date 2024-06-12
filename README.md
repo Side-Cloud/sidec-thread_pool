@@ -58,6 +58,8 @@ pool.set_min_task_count(count) //设置单次最小任务量
 
 提交非`noexcept`任务时，自动包装`try` `catch`并将异常置入返回的`future`
 
+有私有的任务等待函数，懒得写公开
+
 ## 注意事项
 #### 雷区
 不要在任务中操纵组件，会阻塞线程
