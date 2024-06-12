@@ -1,5 +1,5 @@
-#ifndef SIDEC_THRDPOOL_THREAD_POOL_H_
-#define SIDEC_THRDPOOL_THREAD_POOL_H_
+#ifndef SIDEC_THREAD_POOL_H_
+#define SIDEC_THREAD_POOL_H_
 
 #include <future>
 #include <shared_mutex>
@@ -9,9 +9,8 @@
 #include <list>
 #include <unordered_map>
 #include <deque>
-#include <set>
 
-namespace sidec::thrd_pool {
+namespace sidec {
 	struct thread_task final : std::function<void()> {
 		using std::function<void()>::function;
 
@@ -23,7 +22,6 @@ namespace sidec::thrd_pool {
 		using std::function<void()>::operator();
 	};
 
-	template<bool Ordering = false>
 	class thread_pool {
 		template<class Mutex> using read_lock = std::shared_lock<Mutex>;
 		template<class Mutex> using write_lock = std::unique_lock<Mutex>;
@@ -264,4 +262,4 @@ namespace sidec::thrd_pool {
 	};
 }
 
-#endif // !SIDEC_THRDPOOL_THREAD_POOL_H_
+#endif // !SIDEC_THREAD_POOL_H_
